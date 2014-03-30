@@ -61,7 +61,7 @@ int http_read_line(int fd, char *buf, size_t size)
     return -1;
 }
 
-const char *http_request_line(int fd, char *reqpath, char *env, size_t *env_len)
+const char *http_request_line(int fd, char *reqpath, size_t reqpath_size, char *env, size_t *env_len)
 {
     static char buf[8192];      /* static variables are not on the stack */
     char *sp1, *sp2, *qp, *envp = env;
@@ -102,7 +102,7 @@ const char *http_request_line(int fd, char *reqpath, char *env, size_t *env_len)
     }
 
     /* decode URL escape sequences in the requested path into reqpath */
-    url_decode(reqpath, sp1);
+    url_decode(reqpath, sp1, reqpath_size);
 
     envp += sprintf(envp, "REQUEST_URI=%s", reqpath) + 1;
 
@@ -156,7 +156,7 @@ const char *http_request_headers(int fd)
         }
 
         /* Decode URL escape sequences in the value */
-        url_decode(value, sp);
+        url_decode(value, sp, sizeof(value));
 
         /* Store header in env. variable for application code */
         /* Some special headers don't use the HTTP_ prefix. */
@@ -252,7 +252,7 @@ void http_serve(int fd, const char *name)
     getcwd(pn, sizeof(pn));
     setenv("DOCUMENT_ROOT", pn, 1);
 
-    strcat(pn, name);
+    strncat(pn, name, sizeof(pn) - strlen(pn) -1);
     split_path(pn);
 
     if (!stat(pn, &st))
@@ -313,8 +313,8 @@ void http_serve_file(int fd, const char *pn)
     close(filefd);
 }
 
-void dir_join(char *dst, const char *dirname, const char *filename) {
-    strcpy(dst, dirname);
+void dir_join(char *dst, const char *dirname, const char *filename, size_t dst_size) {
+    strncpy(dst, dirname, dst_size - strlen(dirname) - strlen(filename) - 2);
     if (dst[strlen(dst) - 1] != '/')
         strcat(dst, "/");
     strcat(dst, filename);
@@ -328,9 +328,9 @@ void http_serve_directory(int fd, const char *pn) {
     int i;
 
     for (i = 0; indices[i]; i++) {
-        dir_join(name, pn, indices[i]);
+        dir_join(name, pn, indices[i], sizeof(name));
         if (stat(name, &st) == 0 && S_ISREG(st.st_mode)) {
-            dir_join(name, getenv("SCRIPT_NAME"), indices[i]);
+            dir_join(name, getenv("SCRIPT_NAME"), indices[i], sizeof(name));
             break;
         }
     }
@@ -407,9 +407,10 @@ void http_serve_executable(int fd, const char *pn)
     }
 }
 
-void url_decode(char *dst, const char *src)
+void url_decode(char *dst, const char *src, size_t dst_size)
 {
-    for (;;)
+    size_t i;
+    for (i = 0; i < dst_size; i++)
     {
         if (src[0] == '%' && src[1] && src[2])
         {

@@ -65,14 +65,13 @@ static void process_client(int fd)
     int i;
 
     /* get the request line */
-    if ((errmsg = http_request_line(fd, reqpath, env, &env_len)))
+    if ((errmsg = http_request_line(fd, reqpath, sizeof(reqpath), env, &env_len)))
         return http_err(fd, 500, "http_request_line: %s", errmsg);
 
     for (i = 0; i < nsvcs; ++i)
     {
-        if (!regexec(&svcurls[i], reqpath, 0, 0, 0))
-        {
-            warnx("Forward %s to service %d", reqpath, i + 1);
+        if (!regexec(&svcurls[i], reqpath, 0, 0, 0)){
+                    warnx("Forward %s to service %d", reqpath, i + 1);
             break;
         }
     }
@@ -82,6 +81,6 @@ static void process_client(int fd)
 
     if (sendfd(svcfds[i], env, env_len, fd) <= 0)
         return http_err(fd, 500, "Error forwarding request: %s", reqpath);
-
+    
     close(fd);
 }

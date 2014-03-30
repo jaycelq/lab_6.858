@@ -1,1 +1,22 @@
 ## Place your answers here.
+Exercise 2:
+exploit-2a.py overwrite the buffer value in http_request_headers, the buffer overwrite the return address to 0x87654321 to make it crash.
+exploit-2b.py overwrite the buffer pn in http_server, the buffer overwrite the hanlder instead of return address to 0x12345678 to make it crash.
+
+Exercise 3:
+[zookd.c:68]: Therotically, the return address could be overwritten, but the fd will be overwritten make it crash in sendfd, so it's not very easy to take over the control flow.
+[http.c:105]: Bug 2 is same as bug 1.
+[http.c:159]: The buffer can overwrite the return address, and can exploit in the same mannaer.
+[http.c:255]: Bug 4 is used in exercise 3.
+[http.c:331]: It can overwrite the return address in the same manner.
+
+Excersie 4:
+[zookd.c:68]: It could not use this way, for overwrting fd will make sendfd crash.
+[http.c:105]: It can't as bug 1.
+[http.c:159]: It can be exploited in the same manner.
+[http.c:255]: It can be exploited in the same manner.
+[http.c:331]: It can be exploited in the same manner.
+
+Exercise 5:
+[http.c:30]: Http_read_line can cause a DoS attack if the attacker didn't provide \r\n in the http request. The server should add a timeout to prevent this attack.
+[http.c:277]: Http_serve_file can access any file in the web server without chroot. The server should chrooted to prevent such attacks.

@@ -23,8 +23,8 @@ int main(int argc, char **argv)
         const char *errmsg;
 
         /* receive socket and envp from zookd */
-        if ((recvfd(fd, envp, sizeof(envp), &sockfd) <= 0) || sockfd < 0)
-            err(1, "recvfd");
+        if ((recvfd(fd, envp, sizeof(envp), &sockfd) <= 0) || sockfd < 0) 
+              err(1, "recvfd");
 
         switch (fork())
         {

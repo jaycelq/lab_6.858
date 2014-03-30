@@ -3,15 +3,40 @@
 # desc
 #
 
-[zookd.c:1612]
-description goes here. for example, the 'buf' variable can be
-overwritten by the 'msg' variable because ...
+[zookd.c:68]
+the 'reqpath' variable can be overwritten in fuction http_request_line because http_request_line get the web http request, the path portion is stored in reqpath without checking boundaries. If path exceeds 2048 bytes, the buffer overflow could happen. It can be prevented using stack canaries.
 
-    <paste offending line(s) of code here>
+    /* get the request line */
+    if ((errmsg = http_request_line(fd, reqpath, env, &env_len)))
+        return http_err(fd, 500, "http_request_line: %s", errmsg);
 
-[http.c:1512]
-another description.
+[http.c:105]
+the buffer 'reqpath' can be overwirtten in url_decode function without checking boundaries. If sp exceeds the size of reqpath, bufferoverflow will happen. It can be prevented using stack canaries.
 
-    <paste offending line(s) of code here>
+    /* decode URL escape sequences in the requested path into reqpath */
+    url_decode(reqpath, sp1);
+
+[http.c:159]
+the 'value' variable can be overwritten in fuction url_decode because url_decode store the part of a web request (like COOKIE:) into variable value without checking boundaries. If value exceeds 512 bytes, the buffer overflow could happen. It can be prevented using stack canaries.
+
+    /* Decode URL escape sequences in the value */
+    url_decode(value, sp);
+
+[http.c:255]
+the 'pn' variable can be overwritten in fuction str_cat because str_cat link the http request path after the string pn without checking boundaries. If pn exceeds 1024 bytes, the buffer overflow could happen because both the handler and return adrres can be overwirtten. It can't be prevented using stack canaries, because if the buffer overwrite the handler, it won't change the stack canaries.
+
+    strcat(pn, name);
+
+[http.c:331]
+the 'name' variable can be overwritten in fuction dir_join because dir_join will call strcpy to copy the pathname(received from http request) to the variable name without checking boundaries.If pn exceeds 1024 bytes, the buffer overflow could happen because return adrres can be overwritten. It can be prevented using stack canaries.
+
+    dir_join(name, pn, indices[i]);
+
+
+
+
+
+
+
 
 # many more come here
