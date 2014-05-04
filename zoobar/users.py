@@ -5,6 +5,7 @@ from zoodb import *
 from debug import *
 from profile import *
 import bank_client
+import profile_client
 import bank
 
 @catch_err
@@ -17,7 +18,8 @@ def users():
         user = persondb.query(Person).get(request.values['user'])
         if user:
             transferdb = transfer_setup()
-            p = user.profile
+#            p = user.profile
+            p = profile_client.get_profile(request.values['user'])
             if p.startswith("#!python"):
                 p = run_profile(user)
 

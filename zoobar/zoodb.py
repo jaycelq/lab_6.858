@@ -8,6 +8,12 @@ BankBase = declarative_base()
 CredBase = declarative_base()
 PersonBase = declarative_base()
 TransferBase = declarative_base()
+ProfileBase = declarative_base()
+
+class Profile(ProfileBase):
+    __tablename__ = "profile"
+    username = Column(String(128), primary_key=True)
+    profile = Column(String(5000), nullable=False, default="")
 
 class Cred(CredBase):
     __tablename__ = "cred"
@@ -24,7 +30,6 @@ class Bank(BankBase):
 class Person(PersonBase):
     __tablename__ = "person"
     username = Column(String(128), primary_key=True)
-    profile = Column(String(5000), nullable=False, default="")
 
 class Transfer(TransferBase):
     __tablename__ = "transfer"
@@ -45,6 +50,9 @@ def dbsetup(name, base):
     base.metadata.create_all(engine)
     session = sessionmaker(bind=engine)
     return session()
+
+def profile_setup():
+    return dbsetup("profile", ProfileBase)
 
 def cred_setup():
     return dbsetup("cred", CredBase)
@@ -73,5 +81,7 @@ if __name__ == "__main__":
         transfer_setup()
     elif cmd == 'init-cred':
         cred_setup()
+    elif cmd == 'init-profile':
+        profile_setup()
     else:
         raise Exception("unknown command %s" % cmd)

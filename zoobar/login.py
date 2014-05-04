@@ -3,6 +3,7 @@ from functools import wraps
 from debug import *
 from zoodb import *
 
+import profile_client
 import auth_client
 import bank_client
 import random
@@ -29,6 +30,7 @@ class User(object):
         token = auth_client.register(username, password)
         if token is not None:
             bank_client.init(username)
+            profile_client.init(username)
             return self.loginCookie(username, token)
         else:
             return None
